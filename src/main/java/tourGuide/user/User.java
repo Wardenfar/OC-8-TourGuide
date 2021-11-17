@@ -11,11 +11,11 @@ import java.util.UUID;
 public class User {
 	private final UUID userId;
 	private final String userName;
+	private final List<VisitedLocation> visitedLocations = new ArrayList<>();
+	private final List<UserReward> userRewards = new ArrayList<>();
 	private String phoneNumber;
 	private String emailAddress;
 	private Date latestLocationTimestamp;
-	private List<VisitedLocation> visitedLocations = new ArrayList<>();
-	private List<UserReward> userRewards = new ArrayList<>();
 	private UserPreferences userPreferences = new UserPreferences();
 	private List<Provider> tripDeals = new ArrayList<>();
 
@@ -34,28 +34,28 @@ public class User {
 		return userName;
 	}
 
-	public void setPhoneNumber(String phoneNumber) {
-		this.phoneNumber = phoneNumber;
-	}
-
 	public String getPhoneNumber() {
 		return phoneNumber;
 	}
 
-	public void setEmailAddress(String emailAddress) {
-		this.emailAddress = emailAddress;
+	public void setPhoneNumber(String phoneNumber) {
+		this.phoneNumber = phoneNumber;
 	}
 
 	public String getEmailAddress() {
 		return emailAddress;
 	}
 
-	public void setLatestLocationTimestamp(Date latestLocationTimestamp) {
-		this.latestLocationTimestamp = latestLocationTimestamp;
+	public void setEmailAddress(String emailAddress) {
+		this.emailAddress = emailAddress;
 	}
 
 	public Date getLatestLocationTimestamp() {
 		return latestLocationTimestamp;
+	}
+
+	public void setLatestLocationTimestamp(Date latestLocationTimestamp) {
+		this.latestLocationTimestamp = latestLocationTimestamp;
 	}
 
 	public void addToVisitedLocations(VisitedLocation visitedLocation) {
@@ -92,12 +92,12 @@ public class User {
 		return visitedLocations.get(visitedLocations.size() - 1);
 	}
 
-	public void setTripDeals(List<Provider> tripDeals) {
-		this.tripDeals = tripDeals;
-	}
-
 	public List<Provider> getTripDeals() {
 		return tripDeals;
+	}
+
+	public void setTripDeals(List<Provider> tripDeals) {
+		this.tripDeals = tripDeals;
 	}
 
 }
