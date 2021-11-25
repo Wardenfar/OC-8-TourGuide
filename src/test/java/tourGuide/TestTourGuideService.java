@@ -109,6 +109,8 @@ public class TestTourGuideService {
 		assertEquals(5, attractions.size());
 	}
 
+	@Ignore // Not yet implemented
+	@Test
 	public void getTripDeals() {
 		GpsUtil gpsUtil = new GpsUtil();
 		RewardsService rewardsService = new RewardsService(gpsUtil, new RewardCentral());
@@ -123,6 +125,4 @@ public class TestTourGuideService {
 
 		assertEquals(10, providers.size());
 	}
-
-
 }

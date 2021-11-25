@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import tourGuide.helper.InternalTestHelper;
+import tourGuide.helper.RwLockList;
 import tourGuide.tracker.Tracker;
 import tourGuide.user.User;
 import tourGuide.user.UserReward;
@@ -17,6 +18,9 @@ import tripPricer.TripPricer;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -37,6 +41,8 @@ public class TourGuideService {
     private final Map<String, User> internalUserMap = new HashMap<>();
     boolean testMode = true;
 
+    ExecutorService executor = Executors.newFixedThreadPool(32);
+
     public TourGuideService(GpsUtil gpsUtil, RewardsService rewardsService) {
         this.gpsUtil = gpsUtil;
         this.rewardsService = rewardsService;
@@ -48,6 +54,7 @@ public class TourGuideService {
             logger.debug("Finished initializing users");
         }
         tracker = new Tracker(this);
+        executor.submit(tracker);
         addShutDownHook();
     }
 
@@ -56,10 +63,13 @@ public class TourGuideService {
     }
 
     public VisitedLocation getUserLocation(User user) {
-        VisitedLocation visitedLocation = (user.getVisitedLocations().size() > 0) ?
+        RwLockList.RwListGuard<VisitedLocation> guard = user.getVisitedLocations().read();
+        int size = guard.inner().size();
+        guard.release();
+
+        return (size > 0) ?
                 user.getLastVisitedLocation() :
                 trackUserLocation(user);
-        return visitedLocation;
     }
 
     public User getUser(String userName) {
@@ -84,6 +94,28 @@ public class TourGuideService {
         return providers;
     }
 
+    public void trackMultipleUserLocation(List<User> users) {
+        List<Future<VisitedLocation>> futures = new ArrayList<>();
+        for (User u : users) {
+            Future<VisitedLocation> future = executor.submit(() -> trackUserLocation(u));
+            futures.add(future);
+        }
+        while (true) {
+            long rest = futures.stream().filter(f -> !f.isDone()).count();
+            if (rest == 0) {
+                break;
+            } else {
+                System.out.println("Remaining to track : " + rest);
+            }
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
     public VisitedLocation trackUserLocation(User user) {
         VisitedLocation visitedLocation = gpsUtil.getUserLocation(user.getUserId());
         user.addToVisitedLocations(visitedLocation);
@@ -103,11 +135,10 @@ public class TourGuideService {
     }
 
     private void addShutDownHook() {
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            public void run() {
-                tracker.stopTracking();
-            }
-        });
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            tracker.stopTracking();
+            executor.shutdownNow();
+        }));
     }
 
     private void initializeInternalUsers() {

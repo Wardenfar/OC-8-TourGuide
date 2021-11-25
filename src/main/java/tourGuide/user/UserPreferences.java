@@ -1,11 +1,17 @@
 package tourGuide.user;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.javamoney.moneta.Money;
 
 import javax.money.CurrencyUnit;
 import javax.money.Monetary;
 
 
+@Getter
+@Setter
+@NoArgsConstructor
 public class UserPreferences {
 
     private final CurrencyUnit currency = Monetary.getCurrency("USD");
@@ -16,64 +22,5 @@ public class UserPreferences {
     private int ticketQuantity = 1;
     private int numberOfAdults = 1;
     private int numberOfChildren = 0;
-
-    public UserPreferences() {
-    }
-
-    public int getAttractionProximity() {
-        return attractionProximity;
-    }
-
-    public void setAttractionProximity(int attractionProximity) {
-        this.attractionProximity = attractionProximity;
-    }
-
-    public Money getLowerPricePoint() {
-        return lowerPricePoint;
-    }
-
-    public void setLowerPricePoint(Money lowerPricePoint) {
-        this.lowerPricePoint = lowerPricePoint;
-    }
-
-    public Money getHighPricePoint() {
-        return highPricePoint;
-    }
-
-    public void setHighPricePoint(Money highPricePoint) {
-        this.highPricePoint = highPricePoint;
-    }
-
-    public int getTripDuration() {
-        return tripDuration;
-    }
-
-    public void setTripDuration(int tripDuration) {
-        this.tripDuration = tripDuration;
-    }
-
-    public int getTicketQuantity() {
-        return ticketQuantity;
-    }
-
-    public void setTicketQuantity(int ticketQuantity) {
-        this.ticketQuantity = ticketQuantity;
-    }
-
-    public int getNumberOfAdults() {
-        return numberOfAdults;
-    }
-
-    public void setNumberOfAdults(int numberOfAdults) {
-        this.numberOfAdults = numberOfAdults;
-    }
-
-    public int getNumberOfChildren() {
-        return numberOfChildren;
-    }
-
-    public void setNumberOfChildren(int numberOfChildren) {
-        this.numberOfChildren = numberOfChildren;
-    }
 
 }
