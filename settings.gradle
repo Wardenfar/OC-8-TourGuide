@@ -8,3 +8,9 @@
  */
 
 rootProject.name = 'TourGuide'
+
+include 'gps'
+include 'common'
+include 'rewards'
+include 'pricer'
+include 'app'
