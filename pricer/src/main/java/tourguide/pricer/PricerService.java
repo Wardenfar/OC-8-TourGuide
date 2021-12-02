@@ -21,8 +21,8 @@ public class PricerService {
         tripPricer = new TripPricer();
     }
 
-    public List<ProviderModel> getPrice(UUID attractionId, int rewardsPoints, UserPreferences userPreferences) {
-        List<Provider> list = tripPricer.getPrice(API_KEY, attractionId, userPreferences.getNumberOfAdults(), userPreferences.getNumberOfChildren(), userPreferences.getTripDuration(), rewardsPoints);
+    public List<ProviderModel> getPrice(UUID userId, int rewardsPoints, UserPreferences userPreferences) {
+        List<Provider> list = tripPricer.getPrice(API_KEY, userId, userPreferences.getNumberOfAdults(), userPreferences.getNumberOfChildren(), userPreferences.getTripDuration(), rewardsPoints);
         return list.stream().map(Converter::convert).collect(Collectors.toList());
     }
 

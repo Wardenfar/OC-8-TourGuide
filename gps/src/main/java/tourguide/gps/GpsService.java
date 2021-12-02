@@ -1,9 +1,7 @@
 package tourguide.gps;
 
-import com.sun.org.apache.bcel.internal.generic.LXOR;
 import gpsUtil.GpsUtil;
 import gpsUtil.location.Attraction;
-import gpsUtil.location.VisitedLocation;
 import org.springframework.stereotype.Service;
 import tourguide.common.model.AttractionModel;
 import tourguide.common.model.VisitedLocationModel;

@@ -16,13 +16,11 @@ public class GpsController {
     @Autowired
     GpsService gpsService;
 
-    // get user location
     @GetMapping("user/location/{userId}")
     public VisitedLocationModel getUserLocation(@PathVariable String userId) {
         return gpsService.getUserLocation(UUID.fromString(userId));
     }
 
-    // get attractions
     @GetMapping("attractions")
     public List<AttractionModel> getAttractions() {
         return gpsService.getAttractions();

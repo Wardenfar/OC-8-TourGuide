@@ -1,17 +1,18 @@
-package tourGuide.tracker;
+package tourguide.app.tracker;
 
-import org.apache.commons.lang3.time.StopWatch;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import tourGuide.service.TourGuideService;
-import tourGuide.user.User;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StopWatch;
+import tourguide.app.service.TourGuideService;
+import tourguide.app.user.User;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 public class Tracker extends Thread {
+
     private static final long trackingPollingInterval = TimeUnit.MINUTES.toSeconds(5);
-    private final Logger logger = LoggerFactory.getLogger(Tracker.class);
+
     private final TourGuideService tourGuideService;
     private boolean stop = false;
 
@@ -28,29 +29,29 @@ public class Tracker extends Thread {
 
     @Override
     public void run() {
-        StopWatch stopWatch = new StopWatch();
+
         while (true) {
             if (Thread.currentThread().isInterrupted() || stop) {
-                logger.debug("Tracker stopping");
+                log.debug("Tracker stopping");
                 break;
             }
 
+            StopWatch stopWatch = new StopWatch();
+
             List<User> users = tourGuideService.getAllUsers();
-            logger.debug("Begin Tracker. Tracking " + users.size() + " users.");
+            log.debug("Begin Tracker. Tracking " + users.size() + " users.");
             stopWatch.start();
 
             tourGuideService.trackMultipleUserLocation(users);
 
             stopWatch.stop();
-            logger.debug("Tracker Time Elapsed: " + TimeUnit.MILLISECONDS.toSeconds(stopWatch.getTime()) + " seconds.");
-            stopWatch.reset();
+            log.debug("Tracker Time Elapsed: " + stopWatch.getTotalTimeSeconds() + " seconds.");
             try {
-                logger.debug("Tracker sleeping");
+                log.debug("Tracker sleeping");
                 TimeUnit.SECONDS.sleep(trackingPollingInterval);
             } catch (InterruptedException e) {
                 break;
             }
         }
-
     }
 }
