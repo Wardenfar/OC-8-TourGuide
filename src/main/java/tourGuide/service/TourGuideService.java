@@ -35,7 +35,7 @@ public class TourGuideService {
     public final Tracker tracker;
     private final Logger logger = LoggerFactory.getLogger(TourGuideService.class);
     private final GpsUtil gpsUtil;
-    private final RewardsService rewardsService;
+    public final RewardsService rewardsService;
     private final TripPricer tripPricer = new TripPricer();
     // Database connection will be used for external users, but for testing purposes internal users are provided and stored in memory
     private final Map<String, User> internalUserMap = new HashMap<>();
@@ -87,9 +87,15 @@ public class TourGuideService {
     }
 
     public List<Provider> getTripDeals(User user) {
-        int cumulatativeRewardPoints = user.getUserRewards().stream().mapToInt(i -> i.getRewardPoints()).sum();
-        List<Provider> providers = tripPricer.getPrice(tripPricerApiKey, user.getUserId(), user.getUserPreferences().getNumberOfAdults(),
-                user.getUserPreferences().getNumberOfChildren(), user.getUserPreferences().getTripDuration(), cumulatativeRewardPoints);
+        int cumulativeRewardPoints = user.getUserRewards().stream().mapToInt(i -> i.getRewardPoints()).sum();
+        List<Provider> providers = tripPricer.getPrice(
+                tripPricerApiKey,
+                user.getUserId(),
+                user.getUserPreferences().getNumberOfAdults(),
+                user.getUserPreferences().getNumberOfChildren(),
+                user.getUserPreferences().getTripDuration(),
+                cumulativeRewardPoints
+        );
         user.setTripDeals(providers);
         return providers;
     }
@@ -123,15 +129,12 @@ public class TourGuideService {
         return visitedLocation;
     }
 
-    public List<Attraction> getNearByAttractions(VisitedLocation visitedLocation) {
-        List<Attraction> nearbyAttractions = new ArrayList<>();
-        for (Attraction attraction : gpsUtil.getAttractions()) {
-            if (rewardsService.isWithinAttractionProximity(attraction, visitedLocation.location)) {
-                nearbyAttractions.add(attraction);
-            }
-        }
-
-        return nearbyAttractions;
+    public List<Attraction> getNearByAttractions(VisitedLocation userLoc) {
+        return gpsUtil.getAttractions().stream().sorted((a, b) -> {
+            double da = rewardsService.getDistance(a, userLoc.location);
+            double db = rewardsService.getDistance(b, userLoc.location);
+            return Double.compare(da, db);
+        }).limit(5).collect(Collectors.toList());
     }
 
     private void addShutDownHook() {
