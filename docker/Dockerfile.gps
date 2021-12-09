@@ -1,0 +1,12 @@
+FROM gradle:7.3.1-jdk11 as builder
+
+WORKDIR /app
+COPY ./ /app
+RUN gradle build -x test :gps:bootJar
+RUN mv /app/gps/build/libs/gps*.jar /app/gps.jar
+
+FROM openjdk:11-jre-slim
+
+COPY --from=builder /app/gps.jar gps.jar
+EXPOSE 8080
+CMD ["java", "-jar", "gps.jar"]

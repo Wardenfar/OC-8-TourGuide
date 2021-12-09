@@ -6,7 +6,10 @@ plugins {
 
 group = 'tourguide'
 version = '1.0'
-sourceCompatibility = '1.8'
+
+jar {
+    enabled = false
+}
 
 configurations {
     compileOnly {

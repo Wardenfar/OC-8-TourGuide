@@ -166,13 +166,16 @@ public class TourGuideService {
     }
 
     private void generateUserLocationHistory(User user) {
+        RwLockList.RwListGuard<VisitedLocationModel> guard = user.getVisitedLocations().write();
         IntStream.range(0, 3).forEach(i -> {
             VisitedLocationModel l = new VisitedLocationModel();
             l.setLatitude(generateRandomLatitude());
             l.setLongitude(generateRandomLongitude());
             l.setTimeVisited(getRandomTime());
             l.setUserId(user.getId());
+            guard.inner().add(l);
         });
+        guard.release();
     }
 
     private double generateRandomLongitude() {

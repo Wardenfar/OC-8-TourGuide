@@ -1,0 +1,12 @@
+FROM gradle:7.3.1-jdk11 as builder
+
+WORKDIR /app
+COPY ./ /app
+RUN gradle build -x test :rewards:bootJar
+RUN mv /app/rewards/build/libs/rewards*.jar /app/rewards.jar
+
+FROM openjdk:11-jre-slim
+
+COPY --from=builder /app/rewards.jar rewards.jar
+EXPOSE 8080
+CMD ["java", "-jar", "rewards.jar"]
