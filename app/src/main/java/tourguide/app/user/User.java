@@ -2,7 +2,7 @@ package tourguide.app.user;
 
 import lombok.Getter;
 import lombok.Setter;
-import tourguide.common.helper.RwLockList;
+import tourguide.common.helper.RwGuard;
 import tourguide.common.model.ProviderModel;
 import tourguide.common.model.UserPreferences;
 import tourguide.common.model.UserRewardModel;
@@ -18,7 +18,7 @@ import java.util.UUID;
 public class User {
     private final UUID id;
     private final String userName;
-    private final RwLockList<VisitedLocationModel> visitedLocations = new RwLockList<>(new ArrayList<>());
+    private final RwGuard<List<VisitedLocationModel>> visitedLocations = new RwGuard<>(new ArrayList<>());
     private final List<UserRewardModel> userRewards = new ArrayList<>();
     private String phoneNumber;
     private String emailAddress;
@@ -34,12 +34,10 @@ public class User {
     }
 
     public void addToVisitedLocations(VisitedLocationModel visitedLocation) {
-        RwLockList.RwListGuard<VisitedLocationModel> guard = visitedLocations.write();
-        guard.inner().add(visitedLocation);
-        guard.release();
+        visitedLocations.write(inner -> inner.add(visitedLocation));
     }
 
-    public RwLockList<VisitedLocationModel> getVisitedLocations() {
+    public RwGuard<List<VisitedLocationModel>> getVisitedLocations() {
         return visitedLocations;
     }
 
@@ -50,14 +48,12 @@ public class User {
     }
 
     public VisitedLocationModel getLastVisitedLocation() {
-        RwLockList.RwListGuard<VisitedLocationModel> guard = visitedLocations.read();
-        if (guard.inner().isEmpty()) {
-            guard.release();
-            return null;
-        } else {
-            VisitedLocationModel result = guard.inner().get(guard.inner().size() - 1);
-            guard.release();
-            return result;
-        }
+        return visitedLocations.result_read(inner -> {
+            if (inner.isEmpty()) {
+                return null;
+            } else {
+                return inner.get(inner.size() - 1);
+            }
+        });
     }
 }

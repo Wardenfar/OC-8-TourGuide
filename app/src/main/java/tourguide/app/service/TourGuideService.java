@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import tourguide.app.tracker.Tracker;
 import tourguide.app.user.User;
 import tourguide.common.helper.InternalTestHelper;
-import tourguide.common.helper.RwLockList;
 import tourguide.common.model.*;
 
 import java.time.LocalDateTime;
@@ -74,13 +73,12 @@ public class TourGuideService {
     }
 
     public VisitedLocationModel getUserLocation(User user) {
-        RwLockList.RwListGuard<VisitedLocationModel> guard = user.getVisitedLocations().read();
-        int size = guard.inner().size();
-        guard.release();
-
-        return (size > 0) ?
-                user.getLastVisitedLocation() :
-                trackUserLocation(user);
+        int size = user.getVisitedLocations().result_read(List::size);
+        if (size > 0) {
+            return user.getLastVisitedLocation();
+        } else {
+            return trackUserLocation(user);
+        }
     }
 
     public User getUser(String userName) {
@@ -166,16 +164,14 @@ public class TourGuideService {
     }
 
     private void generateUserLocationHistory(User user) {
-        RwLockList.RwListGuard<VisitedLocationModel> guard = user.getVisitedLocations().write();
         IntStream.range(0, 3).forEach(i -> {
             VisitedLocationModel l = new VisitedLocationModel();
             l.setLatitude(generateRandomLatitude());
             l.setLongitude(generateRandomLongitude());
             l.setTimeVisited(getRandomTime());
             l.setUserId(user.getId());
-            guard.inner().add(l);
+            user.getVisitedLocations().write(inner -> inner.add(l));
         });
-        guard.release();
     }
 
     private double generateRandomLongitude() {

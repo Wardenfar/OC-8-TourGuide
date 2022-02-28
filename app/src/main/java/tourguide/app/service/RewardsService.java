@@ -3,7 +3,6 @@ package tourguide.app.service;
 import org.springframework.stereotype.Service;
 import tourguide.app.http.HttpClient;
 import tourguide.app.user.User;
-import tourguide.common.helper.RwLockList;
 import tourguide.common.model.AttractionModel;
 import tourguide.common.model.LocationModel;
 import tourguide.common.model.UserRewardModel;
@@ -16,33 +15,37 @@ import java.util.UUID;
 public class RewardsService {
 
     private static final double STATUTE_MILES_PER_NAUTICAL_MILE = 1.15077945;
-    private static final int DEFAULT_PROXIMITY_BUFFER = 10;
+    public static final int DEFAULT_PROXIMITY_BUFFER = 10;
 
     private static final String REMOTE = "http://localhost:8082/";
 
+    private int proximity_buffer = DEFAULT_PROXIMITY_BUFFER;
+
     public int getRewardPointsForAttraction(UUID attractionId, UUID userId) {
-       String url = REMOTE + "rewardPoints/attraction/" + attractionId + "/user/" + userId;
-       return HttpClient.get(int.class, url);
+        String url = REMOTE + "rewardPoints/attraction/" + attractionId + "/user/" + userId;
+        return HttpClient.get(int.class, url);
+    }
+
+    public void setProximityBuffer(int value) {
+        this.proximity_buffer = value;
     }
 
     public void calculateRewards(User user, List<AttractionModel> allAttractions) {
-        RwLockList.RwListGuard<VisitedLocationModel> guard = user.getVisitedLocations().read();
-
-        for (VisitedLocationModel visitedLocation : guard.inner()) {
-            for (AttractionModel attraction : allAttractions) {
-                if (nearAttraction(visitedLocation, attraction)) {
-                    if (user.getUserRewards().stream().noneMatch(r -> r.getAttraction().getName().equals(attraction.getName()))) {
-                        user.addUserReward(new UserRewardModel(visitedLocation, attraction, getRewardPoints(attraction, user)));
+        user.getVisitedLocations().read(inner -> {
+            for (VisitedLocationModel visitedLocation : inner) {
+                for (AttractionModel attraction : allAttractions) {
+                    if (nearAttraction(visitedLocation, attraction)) {
+                        if (user.getUserRewards().stream().noneMatch(r -> r.getAttraction().getName().equals(attraction.getName()))) {
+                            user.addUserReward(new UserRewardModel(visitedLocation, attraction, getRewardPoints(attraction, user)));
+                        }
                     }
                 }
             }
-        }
-
-        guard.release();
+        });
     }
 
     private boolean nearAttraction(VisitedLocationModel visitedLocation, AttractionModel attraction) {
-        return !(getDistance(attraction, visitedLocation) > DEFAULT_PROXIMITY_BUFFER);
+        return !(getDistance(attraction, visitedLocation) > proximity_buffer);
     }
 
     public int getRewardPoints(AttractionModel attraction, User user) {
