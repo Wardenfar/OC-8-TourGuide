@@ -92,7 +92,7 @@ TODO
 
 ## 3.1 Schémas de conception technique
 
-TODO: (plantuml) docker micro service
+![Schema](schema.png)
 
 ## 3.2 Glossaire
 
